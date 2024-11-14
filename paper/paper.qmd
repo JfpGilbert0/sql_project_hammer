@@ -1,6 +1,6 @@
 ---
 title: "Vendor Price Correlation Analysis"
-author: "Your Name"
+author: "Jacob Gilbert  Aman Rana"
 date: "2024-11-14"
 format:
   pdf:
@@ -10,17 +10,49 @@ format:
     toc-depth: 2
 bibliography: references.bib
 abstract: |
-  This study analyzes the correlations in product pricing between eight major vendors using data from Project Hammer, with a focus on correlation versus causation, missing data, and potential biases. The findings aim to better understand competitive behaviors and pricing strategies.
+  This study analyzes the correlations in product pricing between two major vendors using data from Project Hammer, with a focus on correlation versus causation, missing data, and potential biases. The findings aim to better understand competitive behaviors and pricing strategies. We find a weak positive correlation between the prices of 1L of Heinz Ketchup at Loblaws and Voila, suggesting some similarity in pricing trends.
 ---
 
-The aim of this study is to analyze the correlations in product pricing between eight major vendors: Voila, T&T, Loblaws, No Frills, Metro, Galleria, Walmart, and Save-On-Foods, using data from Project Hammer (“https://jacobfilipp.com/hammer/”). By exploring the relationship btwn the pricing of, we hope to uncover patterns that might help explain competitive behaviors, pricing strategies, and the impact of broader economic factors on retail prices.
+The aim of this study is to analyze the correlations in product pricing between eight major vendors: Voila, T&T, Loblaws, No Frills, Metro, Galleria, Walmart, and Save-On-Foods, using data from Project Hammer (“https://jacobfilipp.com/hammer/”). By exploring the relationship between the pricing of ketchup (A common household good), we hope to uncover patterns that might help explain competitive behaviors, pricing strategies, and the impact of broader economic factors on retail prices.
 
-This paper specifically focuses on assessing the correlations between the prices of dairy products at each of the listed vendors, attempting to discern whether a relationship exists and how strong that relationship is. While correlation can often hint at similar trends or suggest price competition, it is important to exercise caution when drawing conclusions about the underlying causes. For this reason, we dedicate a sub-section to the distinction between correlation and causation, highlighting the dangers of misinterpretation.
+This paper specifically focuses on assessing the correlations between the prices of ketchup between two vendors, attempting to discern whether a relationship exists and how strong that relationship is. While correlation can often hint at similar trends or suggest price competition, it is important to exercise caution when drawing conclusions about the underlying causes. For this reason, we dedicate a sub-section to the distinction between correlation and causation, highlighting the dangers of misinterpretation. Additionallly, since we are only looking at two vendors, we discuss the potential biases and limitations of this analysis.
 
-Ultimately, this paper aims to provide a comprehensive analysis of price relationships across these eight vendors. "result"
+We find a weak positive correlation between the prices of 1L of Heinz Ketchup at Loblaws and Voila. This suggests that while there is some similarity in pricing trends, the relationship is weak, barring on non-existent.
 
 This analysis uses SQlite (@sql) for data manipulation and Python (@python) to display the regression. 
 
+## Data Preparation
+
+We begin by creating a csv for our downstream parsing. Observing the database we find 1L of Heinz ketchup has ids 716683 and 1704661. We filter the database of products to just ketchup, drop rows which have a sale price, and then save the table to a csv file. This data is then aggregated to a daily price level by taking average prices across a day. We forward-fill data, assuming that prices are the same until an observation is added into the database.
+
+An example of the data is shown below:
+
+```{python}
+#| echo : false
+import pandas as pd
+df = pd.read_csv('../data/product_pricing_ketchup.csv')
+df['nowtime'] = pd.to_datetime(df['nowtime'])
+df['date'] = df['nowtime'].dt.date
+avg_price_per_day = df.groupby(['date', 'vendor', 'id'])['current_price'].mean().reset_index()
+
+avg_price_per_day['current_price'] = pd.to_numeric(avg_price_per_day['current_price'], errors='coerce')
+df = avg_price_per_day.pivot_table(index=['date'], columns='vendor', values='current_price').ffill().dropna()
+
+print(df.head().style.format(precision=2))
+```
+
+## Results
+```{python}
+#| echo : false
+df['Loblaws'].corr(df['Voila'])
+```
+
+The correlation coefficent when looking at the price of 1L of Heinz Ketchup between Loblaws and Voila is 0.21, this is a weak positive correlation.
+
+## Discussion
+Our results show a weak posiitve correlation but there are many limitations, first of the data itself, then of the possible interpretations of the result. The subset of the data we observe is a timeseries of only 52 observations. This is a small sample, and a small period of time. Considering pricing regimes exist, and the complexity of factors that affect price, we cannot generalize this result to a larger timespan. Furthermore, the data is only from two vendors, and we cannot generalize this result to other vendors considering the sparsity of our data. 
+
+Below we go into detail about broader limitations of this kind of analysis.
 
 ## Correlation v Causation
 

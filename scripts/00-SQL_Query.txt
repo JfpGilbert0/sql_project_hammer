@@ -1,0 +1,20 @@
+
+#### Preamble ####
+# Purpose: Selects Heinz Ketchup from the Project Hammer DB
+# Author: Aman Rana
+# Date: 14 November 2024
+# Contact: aman.rana@mail.utoronto.ca
+# License: MIT
+# Pre-requisites: Project Hammer DB, SQLite
+# Any other information needed? None
+
+CREATE TABLE product_pricing_milk_ketchup AS
+SELECT product.id, product.vendor, raw.current_price, raw.nowtime
+FROM product
+RIGHT JOIN raw ON product.id = raw.product_id
+WHERE product.id IN (716683, 1704661)
+AND product.vendor IS NOT NULL
+AND product.product_name IS NOT NULL
+AND raw.current_price IS NOT NULL
+AND raw.old_price IS NULL
+AND raw.nowtime IS NOT NULL;
